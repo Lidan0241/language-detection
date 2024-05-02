@@ -25,7 +25,8 @@
 
 ### 02/05/2024
 
-- modèle svm(svc): f1-socre 0.0.9, 
-- regression logistique?
-- comment déployer le résultat de l'entraînement dans notre outil de détection de langue
-- google colab: 
+- modèle svm(svc): f1-socre pour lang1: 0.90, lang2: 0.91, ce qui est un résultat assez satisfaisant
+- Nous planifion utiliser 2 autres méthodes pour comparer l'un avec l'autre et avoir le meilleur modèle : regression logistique et CRF
+
+- maintenant on a implémenté et déployé notre code et modèle dans une interface en utilisant `streamlit`` pour pouvoir tester notre modèle plus rapidement et proprement, streamlit est un framework de Python opensource pour le ML et des applications de données
+- le problème qu'on a remarqué est que l'outil ne peut pas détecter quand c'est du code-switching entre anglais et espagnol, quand on entre "hello amigo", il définit les 2 tokens comme anglais, mais qunad on entre seulement "amigo", il peut bien détecter que c'est de l'espagnol
