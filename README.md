@@ -19,11 +19,11 @@
 
 ##### 04/04/2024
 
---> Ces méthodes ont énormément de limites surtout dans le cas du code mixing et pour les textes courts, on doute qu'il soit très compliqué dans un cas où les deux langues n'ont pas de caractéristiques distinctives comme les caractères diacritiques et qu'il s'agit d'une seule phrase courte. Nous planifions de faire plus de recherches d'articles pendant les vacances pour explorer les solutions des recherches sur internet pour pouvoir avoir d'autres pistes à notre sujet.
+- Ces méthodes ont énormément de limites surtout dans le cas du code mixing et pour les textes courts, on doute qu'il soit très compliqué dans un cas où les deux langues n'ont pas de caractéristiques distinctives comme les caractères diacritiques et qu'il s'agit d'une seule phrase courte. Nous planifions de faire plus de recherches d'articles pendant les vacances pour explorer les solutions des recherches sur internet pour pouvoir avoir d'autres pistes à notre sujet.
 
---> On dispose maintenant d'un proto-script d'un detecteur des langues pour l'anglais, chinois et français avec le nettoyage de texte. Pour l'instant qu'il ne peut que détecter des tokens contenant des diacritiques comme le français; il marche bien pour les tokens chinois, les tokens non-diacrités en français sont détectés comme anglais;
+- On dispose maintenant d'un proto-script d'un detecteur des langues pour l'anglais, chinois et français avec le nettoyage de texte. Pour l'instant qu'il ne peut que détecter des tokens contenant des diacritiques comme le français; il marche bien pour les tokens chinois, les tokens non-diacrités en français sont détectés comme anglais;
 
-### 02/05/2024
+#### 02/05/2024
 
 - modèle svm(svc): f1-socre pour lang1: 0.90, lang2: 0.91, ce qui est un résultat assez satisfaisant
 - Nous planifion utiliser 2 autres méthodes pour comparer l'un avec l'autre et avoir le meilleur modèle : regression logistique et CRF

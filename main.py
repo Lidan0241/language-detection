@@ -37,17 +37,20 @@ def tokenize_text(text, prediction):
 def main():
     st.title('Language Detection System for code-switching texts')
     st.markdown('Supported Languages: English, Spanish, Chinese.')
-    text = st.text_area("Pleaseee enter a text:")
+    text = st.text_area("Please enter a text:")
     if st.button('Analyze Text'):
-        with open('model_svm', "rb") as f:
+        with open('model_svm.pkl', "rb") as f:
             model = pickle.load(f)
         prediction = model.predict([text])[0]
         preprocessed_text = preprocess(text)
         english, chinese, spanish, other = tokenize_text(preprocessed_text, prediction)
-        st.write("English Tokens:", english)
-        st.write("Chinese Tokens:", chinese)
-        st.write("Spanish Tokens:", spanish)
-        st.write("Other Tokens:", other)
+        if preprocessed_text:
+            st.write("English Tokens:", english)
+            st.write("Chinese Tokens:", chinese)
+            st.write("Spanish Tokens:", spanish)
+            st.write("Other Tokens:", other)
+        else:
+            st.error("Please enter a valid text.")
 
 if __name__ == '__main__':
     main()
