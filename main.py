@@ -2,8 +2,12 @@ import re
 import jieba
 import string
 import logging
+import streamlit as st
 from translate import Translator
 from nltk.tokenize import word_tokenize
+'''
+http://10.139.4.72:8502
+'''
 
 # Set Jieba's logging level once to prevent it from logging at each tokenization
 jieba.setLogLevel(logging.INFO)
@@ -43,11 +47,11 @@ def tokenize_text(text):
 
 def main():
     st.title('Language Detection System')
-    text = st.text_area("Enter text to analyze:", "Hello 世界, this is a test 文本. 三菱电机总额高达3000万元。Je vais au cinéma À")
+    st.markdown('Compatible for English, Spanish and Chinese texts.')
+    text = st.text_area("Enter text to analyze:")
     if st.button('Analyze Text'):
         preprocessed_text = preprocess(text)
         english, chinese, french = tokenize_text(preprocessed_text)
-        st.write("Preprocessed Text:", preprocessed_text)
         st.write("English Tokens:", english)
         st.write("Chinese Tokens:", chinese)
         st.write("French Tokens:", french)
