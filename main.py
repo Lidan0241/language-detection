@@ -1,61 +1,48 @@
 import re
 import jieba
 import string
-import logging
+import pickle
 import streamlit as st
-from translate import Translator
 from nltk.tokenize import word_tokenize
-'''
-http://10.139.4.72:8502
-'''
 
 # Set Jieba's logging level once to prevent it from logging at each tokenization
-jieba.setLogLevel(logging.INFO)
+jieba.setLogLevel(20)  # Equivalent to logging.INFO
 
 # Compile regex for removing punctuation and digits
 additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—']
 all_punctuation = f"[{string.punctuation}{''.join(additional_punctuation)}\d]+"
 punctuation_and_digits = re.compile(all_punctuation)
 
-
 def preprocess(text):
     return punctuation_and_digits.sub('', text)
 
-def is_en(token):
-    return all('\u0000' <= char <= '\u007F' for char in token)
-
-def is_zh(token):
-    return any('\u4E00' <= char <= '\u9FFF' for char in token)
-
-def is_es(token):
-    spanish_chars = "àâéèêëîïôöûüç"
-    return any(char in spanish_chars for char in token)
-
-def tokenize_text(text):
+def tokenize_text(text, prediction):
     tokens = text.split()
     english_tokens, chinese_tokens, spanish_tokens = [], [], []
 
     for token in tokens:
-        if is_zh(token):
+        if '\u4E00' <= token[0] <= '\u9FFF':
             chinese_tokens.extend(jieba.cut(token, cut_all=False))
-        elif is_en(token):
+        elif prediction == 'lang1':
             english_tokens.extend(word_tokenize(token))
-        elif is_es(token):
-            spanish_tokens.append(token)  # Use simple append for spanish, no need for `word_tokenize` here
+        elif prediction == 'lang2':
+            spanish_tokens.append(token)
 
     return english_tokens, chinese_tokens, spanish_tokens
 
 def main():
-    st.title('Language Detection System')
-    st.markdown('Compatible for English, Spanish and Chinese texts.')
+    st.title('Language Detection System for code-switching texts')
+    st.markdown('Supported Languages: English, Spanish, Chinese.')
     text = st.text_area("Enter text to analyze:")
     if st.button('Analyze Text'):
+        with open('model_svm', "rb") as f:
+            model = pickle.load(f)
+        prediction = model.predict([text])[0]
         preprocessed_text = preprocess(text)
-        english, chinese, french = tokenize_text(preprocessed_text)
+        english, chinese, spanish = tokenize_text(preprocessed_text, prediction)
         st.write("English Tokens:", english)
         st.write("Chinese Tokens:", chinese)
-        st.write("French Tokens:", french)
+        st.write("Spanish Tokens:", spanish)
 
 if __name__ == '__main__':
     main()
-
