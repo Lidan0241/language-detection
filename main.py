@@ -5,50 +5,61 @@ import pickle
 import streamlit as st
 from nltk.tokenize import word_tokenize
 import nltk
-nltk.download('punkt', quiet="True")
+nltk.download('punkt', quiet=True)
 
-# Set Jieba's logging level once to prevent it from logging at each tokenization
-jieba.setLogLevel(20)  # Equivalent to logging.INFO
+jieba.setLogLevel(20)  # Set logging level for Jieba
 
-# Compile regex for removing punctuation and digits
-additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—']
+# Define punctuation
+additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—', '，']
 all_punctuation = f"[{string.punctuation}{''.join(additional_punctuation)}\d]+"
 punctuation_and_digits = re.compile(all_punctuation)
 
-def preprocess(text):
-    return punctuation_and_digits.sub('', text)
+def tokenize_text(text):
+    return word_tokenize(text)
 
-def tokenize_text(text, prediction):
-    tokens = text.split()
-    english_tokens, chinese_tokens, spanish_tokens, other_tokens = [], [], [], []
+def tokenize_chinese(text):
+    return list(jieba.cut(text, cut_all=False))
 
+def classify_tokens(tokens, model):
+    english_tokens, spanish_tokens, chinese_tokens, other_tokens, punctuations = [], [], [], [], []
     for token in tokens:
-        if '\u4E00' <= token[0] <= '\u9FFF':
-            chinese_tokens.extend(jieba.cut(token, cut_all=False))
-        elif prediction == 'lang1':
-            english_tokens.extend(jieba.cut(token, cut_all=False))
-        elif prediction == 'lang2':
-            spanish_tokens.append(token)
+        if punctuation_and_digits.match(token):
+            punctuations.append(token)
+        elif '\u4E00' <= token[0] <= '\u9FFF':
+            chinese_tokens.extend(tokenize_chinese(token))
         else:
-            other_tokens.append(token)
+            prediction = model.predict([token])[0]
+            if prediction == 'lang1':
+                english_tokens.append(token)
+            elif prediction == 'lang2':
+                spanish_tokens.append(token)
+            else:
+                other_tokens.append(token)
 
-    return english_tokens, chinese_tokens, spanish_tokens, other_tokens
+    return english_tokens, spanish_tokens, chinese_tokens, other_tokens, punctuations
 
 def main():
     st.title('Language Detection System for code-switching texts')
     st.markdown('Supported Languages: English, Spanish, Chinese.')
     text = st.text_area("Please enter a text:")
+
     if st.button('Analyze Text'):
-        with open('model_svm.pkl', "rb") as f:
-            model = pickle.load(f)
-        prediction = model.predict([text])[0]
-        preprocessed_text = preprocess(text)
-        english, chinese, spanish, other = tokenize_text(preprocessed_text, prediction)
-        if preprocessed_text:
+        try:
+            with open('model_svm.pkl', "rb") as f:
+                model = pickle.load(f)
+        except Exception as e:
+            st.error(f"Failed to load model: {e}")
+            return
+        
+        tokens = tokenize_text(text)
+        english, spanish, chinese, other, punctuations = classify_tokens(tokens, model)
+
+        if text:
             st.write("English Tokens:", english)
-            st.write("Chinese Tokens:", chinese)
             st.write("Spanish Tokens:", spanish)
-            st.write("Other Tokens:", other)
+            st.write("Chinese Tokens:", chinese)
+            st.write("Unsupported Language's Tokens", other)
+            st.write("Punctuations:", punctuations)
         else:
             st.error("Please enter a valid text.")
 
