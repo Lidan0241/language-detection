@@ -9,16 +9,36 @@ nltk.download('punkt', quiet=True)
 
 jieba.setLogLevel(20)  # Set logging level for Jieba
 
-# Define punctuation
-additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—', '，']
+# Define punctuation including Chinese punctuation explicitly
+additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—']
 all_punctuation = f"[{string.punctuation}{''.join(additional_punctuation)}\d]+"
 punctuation_and_digits = re.compile(all_punctuation)
 
-def tokenize_text(text):
-    return word_tokenize(text)
+def smart_tokenize(text):
+    """ Tokenize text while managing transitions between Chinese and Roman characters and further splitting on whitespace """
+    tokens = []
+    buffer = ''
+    is_chinese = lambda char: '\u4E00' <= char <= '\u9FFF'
 
-def tokenize_chinese(text):
-    return list(jieba.cut(text, cut_all=False))
+    for char in text:
+        if buffer and ((is_chinese(char) and not is_chinese(buffer[-1])) or (not is_chinese(char) and is_chinese(buffer[-1])) or punctuation_and_digits.match(char)):
+            if not punctuation_and_digits.match(buffer):
+                # Process buffer based on language
+                if '\u4E00' <= buffer[0] <= '\u9FFF':
+                    tokens.extend(jieba.cut(buffer, cut_all=False))  # Use jieba for Chinese
+                else:
+                    tokens.extend(word_tokenize(buffer))  # Use nltk for non-Chinese
+            else:
+                tokens.append(buffer)
+            buffer = ''
+        buffer += char
+    if buffer:
+        # Final flush of the buffer after loop
+        if '\u4E00' <= buffer[0] <= '\u9FFF':
+            tokens.extend(jieba.cut(buffer, cut_all=False))
+        else:
+            tokens.extend(word_tokenize(buffer))
+    return tokens
 
 def classify_tokens(tokens, model):
     english_tokens, spanish_tokens, chinese_tokens, other_tokens, punctuations = [], [], [], [], []
@@ -26,7 +46,7 @@ def classify_tokens(tokens, model):
         if punctuation_and_digits.match(token):
             punctuations.append(token)
         elif '\u4E00' <= token[0] <= '\u9FFF':
-            chinese_tokens.extend(tokenize_chinese(token))
+            chinese_tokens.append(token)
         else:
             prediction = model.predict([token])[0]
             if prediction == 'lang1':
@@ -35,7 +55,6 @@ def classify_tokens(tokens, model):
                 spanish_tokens.append(token)
             else:
                 other_tokens.append(token)
-
     return english_tokens, spanish_tokens, chinese_tokens, other_tokens, punctuations
 
 def main():
@@ -51,14 +70,14 @@ def main():
             st.error(f"Failed to load model: {e}")
             return
         
-        tokens = tokenize_text(text)
+        tokens = smart_tokenize(text)
         english, spanish, chinese, other, punctuations = classify_tokens(tokens, model)
 
         if text:
             st.write("English Tokens:", english)
             st.write("Spanish Tokens:", spanish)
             st.write("Chinese Tokens:", chinese)
-            st.write("Unsupported Language's Tokens", other)
+            st.write("Unsupported Language's Tokens:", other)
             st.write("Punctuations:", punctuations)
         else:
             st.error("Please enter a valid text.")
