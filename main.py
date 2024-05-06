@@ -61,6 +61,8 @@ def main():
     st.title('Language Detection System for code-switching texts')
     st.markdown('Supported Languages: English, Spanish, Chinese.')
     text = st.text_area("Please enter a text:")
+    st.text("Try: Puedes enseñarme cómo decir thank you en 中文? I want to use it.")
+    st.text("Try: I was thinking 我们可以去那个新的 Spanish restaurant este fin de semana")
 
     if st.button('Analyze Text'):
         try:
