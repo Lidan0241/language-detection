@@ -10,7 +10,7 @@ nltk.download('punkt', quiet=True)
 jieba.setLogLevel(20)  # Set logging level for Jieba
 
 # Define punctuation including Chinese punctuation explicitly
-additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—']
+additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—', '¿']
 all_punctuation = f"[{string.punctuation}{''.join(additional_punctuation)}\d]+"
 punctuation_and_digits = re.compile(all_punctuation)
 
@@ -76,11 +76,14 @@ def classify_tokens(tokens, model):
     return english_tokens, spanish_tokens, chinese_tokens, other_tokens, punctuations
 
 def main():
-    st.title('Language Detection System for code-switching texts')
+    st.title('Language Detection System for code-switched texts')
     st.markdown('Supported Languages: English, Spanish, Chinese.')
     text = st.text_area("Please enter a text:")
-    st.text("Try: Puedes enseñarme cómo decir thank you en 中文? I want to use it.")
-    st.text("Try: I was thinking 我们可以去那个新的 Spanish restaurant este fin de semana")
+    st.markdown('Try:')
+    st.text("We should catch up soon lol, Tal vez podemos hablar over coffee y 聊聊天. ")
+    st.text('hey bro, what did you think about el último episodio de that我们都喜欢的show?')
+    st.text('jajaja, I just尝试to make paella for the first time 😍')
+    st.text("Puedes teach me cómo decir thank you en中文¿")
 
     if st.button('Analyze Text'):
         try:
