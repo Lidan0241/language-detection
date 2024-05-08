@@ -49,7 +49,8 @@ def classify_tokens(tokens, model):
             chinese_tokens.append(token)
         else:
             prediction = model.predict([token])[0]
-            if prediction == 'lang1':
+            # ajout pour i et I car le detecteur ne fonctionne pas sur cela
+            if prediction == 'lang1' or token == "i" or token == 'I':
                 english_tokens.append(token)
             elif prediction == 'lang2':
                 spanish_tokens.append(token)
