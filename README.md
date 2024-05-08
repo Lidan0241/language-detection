@@ -1,4 +1,6 @@
-# Plan du projet : Détection des langues dans le code-mixing et switching
+# Détection des langues dans le code-mixing et switching
+
+### Pour directement accéder à l'outil: https://language-detection.streamlit.app/
 
 ## Prétraitement du texte:
 
