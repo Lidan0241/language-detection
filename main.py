@@ -15,30 +15,47 @@ all_punctuation = f"[{string.punctuation}{''.join(additional_punctuation)}\d]+"
 punctuation_and_digits = re.compile(all_punctuation)
 
 def smart_tokenize(text):
-    """ Tokenize text while managing transitions between Chinese and Roman characters and further splitting on whitespace """
+    """Tokenize text using jieba for Chinese characters and nltk for Roman characters, handling an extended set of punctuation."""
     tokens = []
     buffer = ''
+    chinese_buffer = ''
     is_chinese = lambda char: '\u4E00' <= char <= '\u9FFF'
 
     for char in text:
-        if buffer and ((is_chinese(char) and not is_chinese(buffer[-1])) or (not is_chinese(char) and is_chinese(buffer[-1])) or punctuation_and_digits.match(char)):
-            if not punctuation_and_digits.match(buffer):
-                # Process buffer based on language
-                if '\u4E00' <= buffer[0] <= '\u9FFF':
-                    tokens.extend(jieba.cut(buffer, cut_all=False))  # Use jieba for Chinese
-                else:
-                    tokens.extend(word_tokenize(buffer))  # Use nltk for non-Chinese
-            else:
-                tokens.append(buffer)
-            buffer = ''
-        buffer += char
-    if buffer:
-        # Final flush of the buffer after loop
-        if '\u4E00' <= buffer[0] <= '\u9FFF':
-            tokens.extend(jieba.cut(buffer, cut_all=False))
+        if is_chinese(char):
+            if buffer:
+                # Tokenize the non-Chinese buffer with nltk before flushing
+                tokens.extend(word_tokenize(buffer))
+                buffer = ''
+            # Accumulate Chinese characters
+            chinese_buffer += char
+        elif punctuation_and_digits.match(char):
+            if chinese_buffer:
+                # Tokenize the Chinese buffer with jieba before flushing
+                tokens.extend(jieba.cut(chinese_buffer, cut_all=False))
+                chinese_buffer = ''
+            if buffer:
+                # Tokenize the non-Chinese buffer with nltk before flushing
+                tokens.extend(word_tokenize(buffer))
+                buffer = ''
+            # Treat punctuation as separate tokens
+            tokens.append(char)
         else:
-            tokens.extend(word_tokenize(buffer))
+            if chinese_buffer:
+                # Tokenize the Chinese buffer with jieba before flushing
+                tokens.extend(jieba.cut(chinese_buffer, cut_all=False))
+                chinese_buffer = ''
+            # Accumulate Roman characters and other symbols in the buffer
+            buffer += char
+
+    # Flush remaining buffers
+    if chinese_buffer:
+        tokens.extend(jieba.cut(chinese_buffer, cut_all=False))
+    if buffer:
+        tokens.extend(word_tokenize(buffer))
+
     return tokens
+
 
 def classify_tokens(tokens, model):
     english_tokens, spanish_tokens, chinese_tokens, other_tokens, punctuations = [], [], [], [], []
