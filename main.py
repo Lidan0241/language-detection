@@ -93,26 +93,27 @@ def main():
     st.text("Puedes teach me cómo decir thank you en中文?")
 
     if st.button('Analyze Text'):
-        if text:  # 确保文本非空
-            try:
-                with open('model_crf.pkl', "rb") as f:
-                    model = pickle.load(f)
-                
+        if len(text) > 1:
+            with open('model_crf.pkl', "rb") as f:
+                model = pickle.load(f)
+                tokens = smart_tokenize(text)
+                categorized_tokens = classify_tokens(tokens, model)
+        if len(text) == 1:
+            with open('model_svm.pkl', "rb") as f:
+                model = pickle.load(f)
                 tokens = smart_tokenize(text)
                 categorized_tokens = classify_tokens(tokens, model)
 
-                if categorized_tokens:
-                    st.json({
-                        "English Tokens": {idx: token for idx, token in enumerate(categorized_tokens['english'])},
-                        "Spanish Tokens": {idx: token for idx, token in enumerate(categorized_tokens['spanish'])},
-                        "Chinese Tokens": {idx: token for idx, token in enumerate(categorized_tokens['chinese'])},
-                        "Unsupported Language's Tokens": {idx: token for idx, token in enumerate(categorized_tokens['other'])},
-                        "Punctuations": {idx: token for idx, token in enumerate(categorized_tokens['punctuations'])}
-                    })
-            except Exception as e:
-                st.error(f"Failed to load model: {e}")
-        else:
-            st.error("Please enter a valid text.")
+        if categorized_tokens:
+            st.json({
+                "English Tokens": {idx: token for idx, token in enumerate(categorized_tokens['english'])},
+                "Spanish Tokens": {idx: token for idx, token in enumerate(categorized_tokens['spanish'])},
+                "Chinese Tokens": {idx: token for idx, token in enumerate(categorized_tokens['chinese'])},
+                "Unsupported Language's Tokens": {idx: token for idx, token in enumerate(categorized_tokens['other'])},
+                "Punctuations": {idx: token for idx, token in enumerate(categorized_tokens['punctuations'])}
+            })
+    else:
+        st.error("Please enter a valid text.")
 
 if __name__ == '__main__':
     main()
