@@ -13,7 +13,6 @@ import enchant
 english_dict = enchant.Dict("en_US")
 jieba.setLogLevel(20)  # Set logging level for Jieba
 
-# Define punctuation including Chinese punctuation explicitly
 additional_punctuation = ['，', '。', '、', '；', '“', '”', '‘', '’', '（', '）', '【', '】', '《', '》', '！', '？', '：', '……', '—', '¿']
 all_punctuation = f"[{string.punctuation}{''.join(additional_punctuation)}\d]+"
 punctuation_and_digits = re.compile(all_punctuation)
@@ -66,8 +65,11 @@ def extract_features(tokens):
 
 
 def classify_tokens(tokens, model):
-    features = extract_features(tokens)
-    predictions = model.predict([features])[0]
+    if len(tokens) > 1:
+        features = extract_features(tokens)
+        predictions = model.predict([features])[0]
+    if len(tokens) == 1:
+        predictions = model.predict(tokens)
     categorized_tokens = {'english': [], 'spanish': [], 'chinese': [], 'other': [], 'punctuations': []}
     for token, prediction in zip(tokens, predictions):
         if punctuation_and_digits.match(token):
@@ -93,16 +95,15 @@ def main():
     st.text("Puedes teach me cómo decir thank you en中文?")
 
     if st.button('Analyze Text'):
-        if len(text) > 1:
-            with open('model_crf.pkl', "rb") as f:
-                model = pickle.load(f)
-                tokens = smart_tokenize(text)
-                categorized_tokens = classify_tokens(tokens, model)
-        if len(text) == 1:
-            with open('model_svm.pkl', "rb") as f:
-                model = pickle.load(f)
-                tokens = smart_tokenize(text)
-                categorized_tokens = classify_tokens(tokens, model)
+        if text:
+            tokens = smart_tokenize(text)
+            if len(tokens) > 1:
+                with open('model_crf.pkl', "rb") as f:
+                    model = pickle.load(f)
+            else:
+                with open('model_svm.pkl', "rb") as f:
+                    model = pickle.load(f)
+            categorized_tokens = classify_tokens(tokens, model)
 
         if categorized_tokens:
             st.json({
