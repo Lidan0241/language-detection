@@ -1,6 +1,6 @@
 # Détection des langues dans le code-mixing et switching
 
-### Pour directement accéder à l'outil: https://language-detection.streamlit.app/
+```streamlit run main.py```
 
 ## Prétraitement du texte:
 
