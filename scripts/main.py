@@ -98,10 +98,10 @@ def main():
         if text:
             tokens = smart_tokenize(text)
             if len(tokens) > 1:
-                with open('model_crf.pkl', "rb") as f:
+                with open('../src/model_crf.pkl', "rb") as f:
                     model = pickle.load(f)
             else:
-                with open('model_svm.pkl', "rb") as f:
+                with open('../src/model_svm.pkl', "rb") as f:
                     model = pickle.load(f)
             categorized_tokens = classify_tokens(tokens, model)
 
